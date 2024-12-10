@@ -1,0 +1,84 @@
+/* styles.css */
+body {
+  font-family: Arial, sans-serif;
+  background-color: #efeeee;
+  margin: 0;
+  padding: 0;
+}
+
+header {
+  background-color: #6cc4bf;
+  padding: 20px;
+  text-align: center;
+  color: #ffffff;
+}
+
+h1 {
+  margin: 0;
+  font-size: 2rem;
+}
+
+.card {
+  max-width: 400px;
+  margin: 30px auto;
+  padding: 30px; /* Added padding inside the card */
+  background-color: #ffffff;
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+  border-radius: 8px;
+}
+
+.form-control {
+  margin-bottom: 15px;
+}
+
+.form-control label {
+  display: block;
+  margin-bottom: 5px;
+  color: #4c8481;
+}
+
+.form-control input {
+  width: 100%;
+  padding: 12px; /* Increased padding for better spacing */
+  border: 1px solid #ccc;
+  border-radius: 4px;
+  font-size: 1rem;
+  box-sizing: border-box; /* Ensures padding does not extend the width */
+}
+
+button {
+  width: 100%;
+  padding: 12px; /* Increased padding for better spacing */
+  background-color: #6cc4bf;
+  color: #ffffff;
+  border: none;
+  border-radius: 4px;
+  font-size: 1.1rem;
+  cursor: pointer;
+  transition: background-color 0.3s;
+}
+
+button:hover {
+  background-color: #4c8481;
+}
+
+/* Media Query for Small Screens */
+@media (max-width: 600px) {
+  header {
+    width: 100%;
+  }
+  .card {
+    align-self: center;
+    padding: 20px; /* Slightly reduce padding on smaller screens */
+    margin: 20px; /* Reduce margin */
+  }
+
+  .form-control input,
+  button {
+    padding: 10px; /* Reduce padding for smaller devices */
+  }
+
+  h1 {
+    font-size: 1.5rem; /* Make the heading smaller on small screens */
+  }
+}
