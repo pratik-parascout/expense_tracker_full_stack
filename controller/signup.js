@@ -1,5 +1,4 @@
 const path = require('path');
-
 const User = require('../model/signup');
 
 exports.getSignup = (req, res) => {
@@ -9,16 +8,28 @@ exports.getSignup = (req, res) => {
 exports.postSignup = (req, res) => {
   const { username, email, password } = req.body;
 
-  User.create({
-    username: username,
-    email: email,
-    password: password,
-  })
-    .then((user) => {
-      console.log('User Created: ', user);
-      res.redirect('/');
+  User.findOne({ where: { email } })
+    .then((existingUser) => {
+      if (existingUser) {
+        res.status(400).json({ msg: 'User already exists' });
+        return null;
+      }
+      return User.create({
+        username,
+        email,
+        password,
+      });
+    })
+    .then((newUser) => {
+      if (newUser) {
+        console.log('User Created:', newUser);
+        res.redirect('/');
+      }
     })
     .catch((err) => {
-      console.log(err);
+      console.error('Error during signup:', err);
+      res
+        .status(500)
+        .json({ msg: 'An error occurred during signup. Please try again.' });
     });
 };

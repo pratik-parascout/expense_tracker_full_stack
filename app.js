@@ -18,7 +18,7 @@ app.use(express.static(path.join(__dirname, 'public')));
 app.use('/signup', signupRoute);
 
 sequelize
-  .sync({ force: true })
+  .sync()
   .then((result) => {
     app.listen(3000);
   })
