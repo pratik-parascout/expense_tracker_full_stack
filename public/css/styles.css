@@ -21,7 +21,8 @@ h1 {
 .card {
   max-width: 400px;
   margin: 30px auto;
-  padding: 30px; /* Added padding inside the card */
+  height: auto;
+  padding: 30px;
   background-color: #ffffff;
   box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
   border-radius: 8px;
@@ -56,10 +57,18 @@ button {
   font-size: 1.1rem;
   cursor: pointer;
   transition: background-color 0.3s;
+  margin-bottom: 0.5rem;
 }
 
 button:hover {
   background-color: #4c8481;
+}
+
+#signupLink {
+  text-decoration: none;
+  color: #6cc4bf;
+  align-self: center;
+  margin-top: 2rem;
 }
 
 /* Media Query for Small Screens */

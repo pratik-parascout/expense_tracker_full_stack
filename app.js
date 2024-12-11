@@ -6,6 +6,7 @@ const bodyParser = require('body-parser');
 
 const sequelize = require('./utils/database');
 const signupRoute = require('./routes/signup');
+const loginRoute = require('./routes/login');
 
 const app = express();
 
@@ -16,6 +17,7 @@ app.use(bodyParser.urlencoded({ extended: false }));
 app.use(express.static(path.join(__dirname, 'public')));
 
 app.use('/signup', signupRoute);
+app.use('/login', loginRoute);
 
 sequelize
   .sync()
