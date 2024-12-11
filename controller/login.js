@@ -15,9 +15,9 @@ exports.postLogin = (req, res) => {
       }
 
       if (user.password === password) {
-        return res.status(200).json({ msg: 'Login Successful.' });
+        return res.status(200).json({ msg: 'User Login Successful.' });
       } else {
-        return res.status(401).json({ msg: 'Incorrect Password' });
+        return res.status(401).json({ msg: 'User not authorized' });
       }
     })
     .catch((err) => {
