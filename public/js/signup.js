@@ -19,6 +19,7 @@ const form = document
         password,
       });
       document.querySelector('#signupForm').reset();
+      window.location.href('/expense.html');
     } catch (err) {
       console.log(err);
     }

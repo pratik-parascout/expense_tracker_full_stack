@@ -11,8 +11,9 @@ document.querySelector('#loginForm').addEventListener('submit', async (e) => {
     });
 
     if (response.status === 200) {
-      alert(response.data.msg);
+      // alert(response.data.msg);
       document.querySelector('#loginForm').reset();
+      window.location.href = '/expense';
     }
   } catch (err) {
     if (err.response) {

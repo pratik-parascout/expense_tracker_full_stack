@@ -7,6 +7,10 @@ const bodyParser = require('body-parser');
 const sequelize = require('./utils/database');
 const signupRoute = require('./routes/signup');
 const loginRoute = require('./routes/login');
+const expenseRoute = require('./routes/expense');
+
+const User = require('./model/User');
+const Expense = require('./model/Expense');
 
 const app = express();
 
@@ -18,6 +22,10 @@ app.use(express.static(path.join(__dirname, 'public')));
 
 app.use('/signup', signupRoute);
 app.use('/login', loginRoute);
+app.use('/expense', expenseRoute);
+
+// User.hasMany(Expense, {onDelete: 'CASCADE'})
+// Expense.belongsTo('User')
 
 sequelize
   .sync()
