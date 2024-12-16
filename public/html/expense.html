@@ -4,14 +4,15 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <script src="https://cdn.jsdelivr.net/npm/axios/dist/axios.min.js"></script>
+    <script src="https://checkout.razorpay.com/v1/checkout.js"></script>
     <link rel="stylesheet" href="/css/styles.css" />
     <title>Expense Tracker</title>
   </head>
   <body>
+    <header>
+      <h1>Manage Your Expenses</h1>
+    </header>
     <div class="container">
-      <header>
-        <h1>Manage Your Expenses</h1>
-      </header>
       <main class="card">
         <form id="expenseForm">
           <div class="form-control">
@@ -42,7 +43,17 @@
           </div>
           <button type="submit">Add Expense</button>
         </form>
-
+        <form id="premiumForm">
+          <button
+            type="submit"
+            id="premium"
+            style="background-color: rgb(212, 168, 58)"
+          >
+            Buy Premium
+          </button>
+        </form>
+      </main>
+      <main class="card">
         <ul id="expenseList"></ul>
       </main>
     </div>

@@ -10,6 +10,12 @@ document.addEventListener('DOMContentLoaded', function () {
 
     addExpense(amount, description, category);
   });
+
+  const premiumForm = document.querySelector('#premiumForm');
+  premiumForm.addEventListener('submit', function (event) {
+    event.preventDefault();
+    buyPremium();
+  });
 });
 
 function fetchExpenses() {
@@ -54,7 +60,6 @@ function addExpense(amount, description, category) {
       headers: { Authorization: token },
     })
     .then((response) => {
-      //   alert(response.data.msg);
       fetchExpenses();
       document.querySelector('#expenseForm').reset();
     })
@@ -70,10 +75,68 @@ function deleteExpense(id, listItem) {
       headers: { Authorization: token },
     })
     .then((response) => {
-      //   alert(response.data.msg); // Show a success message
       listItem.remove();
     })
     .catch(function (error) {
       console.error('Error deleting expense:', error);
+    });
+}
+
+function buyPremium() {
+  const token = localStorage.getItem('token');
+
+  axios
+    .post(
+      '/expense/create-premium-order',
+      { amount: 500 },
+      {
+        headers: { Authorization: token },
+      }
+    )
+    .then((response) => {
+      const order = response.data.order;
+
+      const options = {
+        key: 'rzp_test_b7p17DaCbmsO02',
+        amount: order.amount,
+        currency: 'INR',
+        name: 'Expense App Premium',
+        description: 'Premium Subscription',
+        order_id: order.id,
+        handler: function (response) {
+          axios
+            .post(
+              '/expense/payment-success',
+              {
+                razorpay_payment_id: response.razorpay_payment_id,
+                razorpay_order_id: response.razorpay_order_id,
+                razorpay_signature: response.razorpay_signature,
+              },
+              {
+                headers: { Authorization: token },
+              }
+            )
+            .then((successResponse) => {
+              alert('You are now a premium user!');
+            })
+            .catch((error) => {
+              alert('Payment verification failed.');
+              console.error('Error:', error);
+            });
+        },
+        prefill: {
+          name: 'User Name',
+          email: 'user@example.com',
+        },
+        theme: {
+          color: '#6cc4bf',
+        },
+      };
+
+      const rzp = new Razorpay(options);
+      rzp.open();
+    })
+    .catch((error) => {
+      console.error('Error creating Razorpay order:', error);
     });
 }

@@ -26,6 +26,18 @@ router.delete(
   expenseController.deleteExpense
 );
 
+router.post(
+  '/create-premium-order',
+  userAuthentication.authenticate,
+  expenseController.createOrder
+);
+
+router.post(
+  '/payment-success',
+  userAuthentication.authenticate,
+  expenseController.paymentStatus
+);
+
 // Serve the expense page
 router.get('/', expenseController.getHome);
 

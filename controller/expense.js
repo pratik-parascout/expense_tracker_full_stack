@@ -1,12 +1,20 @@
 const path = require('path');
 const Expense = require('../model/Expense');
+const razorpay = require('razorpay');
+const crypto = require('crypto');
+const razorpay_key = process.env.RAZORPAY_KEY_ID;
+const razorpay_secret = process.env.RAZORPAY_KEY_SECRET;
+const User = require('../model/User');
 
-// Serve the Expense Page (HTML file) and fetch all expenses
+const instance = new razorpay({
+  key_id: razorpay_key,
+  key_secret: razorpay_secret,
+});
+
 exports.getHome = (req, res) => {
   res.sendFile(path.join(__dirname, '../public/html/expense.html'));
 };
 
-// Add a New Expense
 exports.postExpense = (req, res) => {
   const { amount, description, category } = req.body;
 
@@ -65,4 +73,54 @@ exports.deleteExpense = (req, res) => {
         .status(500)
         .json({ msg: 'Failed to delete expense. Please try again.' });
     });
+};
+
+exports.createOrder = async (req, res) => {
+  try {
+    const amount = 500 * 100;
+
+    const options = {
+      amount: amount,
+      currency: 'INR',
+      receipt: `premium-order-${Date.now()}`,
+      payment_capture: 1,
+    };
+
+    const order = await instance.orders.create(options);
+    res.status(200).json({ order });
+  } catch (error) {
+    console.error('Error creating Razorpay order:', error);
+    res.status(500).json({ error: 'Failed to create premium order' });
+  }
+};
+
+exports.paymentStatus = async (req, res) => {
+  const { razorpay_payment_id, razorpay_order_id, razorpay_signature } =
+    req.body;
+
+  try {
+    const hmac = crypto.createHmac('sha256', process.env.RAZORPAY_KEY_SECRET);
+    hmac.update(razorpay_order_id + '|' + razorpay_payment_id);
+    const generated_signature = hmac.digest('hex');
+
+    if (generated_signature === razorpay_signature) {
+      const user = req.user;
+
+      if (user) {
+        user.isPremium = true;
+        await user.save();
+
+        res
+          .status(200)
+          .json({ msg: 'Payment verified and user upgraded to premium.' });
+      } else {
+        res.status(404).json({ msg: 'User not found.' });
+      }
+    } else {
+      res.status(400).json({ msg: 'Payment verification failed.' });
+    }
+  } catch (error) {
+    console.error('Error verifying payment status:', error);
+    res.status(500).json({ msg: 'Internal server error.' });
+  }
 };
