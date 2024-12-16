@@ -13,8 +13,9 @@ document.addEventListener('DOMContentLoaded', function () {
 });
 
 function fetchExpenses() {
+  const token = localStorage.getItem('token');
   axios
-    .get('/expense/expenses')
+    .get('/expense/expenses', { headers: { Authorization: token } })
     .then((response) => {
       const expenses = response.data.expenses;
       const expenseList = document.querySelector('#expenseList');
@@ -46,9 +47,12 @@ function addExpense(amount, description, category) {
     description: description,
     category: category,
   };
+  const token = localStorage.getItem('token');
 
   axios
-    .post('/expense/add-expense', expenseData)
+    .post('/expense/add-expense', expenseData, {
+      headers: { Authorization: token },
+    })
     .then((response) => {
       //   alert(response.data.msg);
       fetchExpenses();
@@ -60,8 +64,11 @@ function addExpense(amount, description, category) {
 }
 
 function deleteExpense(id, listItem) {
+  const token = localStorage.getItem('token');
   axios
-    .delete(`http://localhost:3000/expense/expenses/${id}`)
+    .delete(`http://localhost:3000/expense/expenses/${id}`, {
+      headers: { Authorization: token },
+    })
     .then((response) => {
       //   alert(response.data.msg); // Show a success message
       listItem.remove();

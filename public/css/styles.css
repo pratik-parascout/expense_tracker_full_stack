@@ -71,6 +71,41 @@ button:hover {
   margin-top: 2rem;
 }
 
+/* Style for the list items (li) */
+#expenseList li {
+  list-style-type: none; /* Removes bullet points */
+  margin: 10px 0; /* Adds some space between each list item */
+  padding: 10px;
+  font-size: 16px; /* Sets font size */
+  text-decoration: none; /* Ensures no underline on text */
+  background-color: #f9f9f9; /* Light background color for list items */
+  border: 1px solid #ddd; /* Adds a border around list items */
+  border-radius: 5px; /* Rounds the corners of the list items */
+}
+
+/* Style for the delete button */
+#expenseList li button {
+  background-color: #ff4d4d; /* Red color for the delete button */
+  color: white; /* White text color */
+  border: none; /* Removes default border */
+  padding: 5px 10px; /* Adds some padding inside the button */
+  margin-left: 10px; /* Adds some space between the text and the button */
+  cursor: pointer; /* Changes cursor to a pointer when hovering over the button */
+  border-radius: 5px; /* Rounds the corners of the button */
+  font-size: 14px; /* Sets font size */
+}
+
+/* Button hover effect */
+#expenseList li button:hover {
+  background-color: #ff1a1a; /* Darker red on hover */
+}
+
+/* Additional styles for the list to keep items aligned */
+#expenseList {
+  padding: 0;
+  margin: 0;
+}
+
 /* Media Query for Small Screens */
 @media (max-width: 600px) {
   header {

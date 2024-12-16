@@ -2,6 +2,14 @@ const path = require('path');
 
 const bcrypt = require('bcrypt');
 const User = require('../model/User');
+const jwt = require('jsonwebtoken');
+
+function generateToken(id, name) {
+  return jwt.sign(
+    { userId: id, name: name },
+    '2d4f5d7t5rt54g8r7y5s7g68s78g56e7ys456f7t8r4yr4gs78r7trgs'
+  );
+}
 
 exports.getLogin = (req, res) => {
   res.sendFile(path.join(__dirname, '../public/html/login.html'));
@@ -24,7 +32,12 @@ exports.postLogin = async (req, res) => {
     }
 
     console.log('User Login successful');
-    res.status(200).json({ msg: 'Login successful' });
+    res
+      .status(200)
+      .json({
+        msg: 'Login successful',
+        token: generateToken(user.id, user.username),
+      });
   } catch (err) {
     console.error('Error during login:', err);
     res

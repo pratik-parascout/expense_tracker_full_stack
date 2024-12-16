@@ -19,7 +19,7 @@ const form = document
         password,
       });
       document.querySelector('#signupForm').reset();
-      window.location.href('/expense.html');
+      window.location.href('/expense');
     } catch (err) {
       console.log(err);
     }

@@ -19,6 +19,7 @@ exports.postExpense = (req, res) => {
     amount,
     description,
     category,
+    userId: req.user.id,
   })
     .then((result) => {
       res
@@ -32,7 +33,8 @@ exports.postExpense = (req, res) => {
 };
 
 exports.getExpenses = (req, res) => {
-  Expense.findAll()
+  req.user
+    .getExpenses()
     .then((expenses) => {
       res.status(200).json({ expenses });
     })
@@ -49,6 +51,7 @@ exports.deleteExpense = (req, res) => {
 
   Expense.destroy({
     where: { id },
+    userId: req.user.id,
   })
     .then((rowsDeleted) => {
       if (rowsDeleted === 0) {

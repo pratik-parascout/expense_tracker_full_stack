@@ -13,6 +13,7 @@ document.querySelector('#loginForm').addEventListener('submit', async (e) => {
     if (response.status === 200) {
       // alert(response.data.msg);
       document.querySelector('#loginForm').reset();
+      localStorage.setItem('token', response.data.token);
       window.location.href = '/expense';
     }
   } catch (err) {
