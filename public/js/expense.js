@@ -16,6 +16,38 @@ document.addEventListener('DOMContentLoaded', function () {
     event.preventDefault();
     buyPremium();
   });
+
+  const token = localStorage.getItem('token');
+
+  // Fetch user details
+  axios
+    .get('/expense/isPremium', { headers: { Authorization: token } })
+    .then((response) => {
+      const isPremium = response.data.isPremium;
+
+      if (isPremium) {
+        // Hide the premiumForm for premium members
+        document.querySelector('#premiumForm').style.display = 'none';
+        const premium = document.querySelector('.premium');
+        const para = document.createElement('p');
+        const btn = document.createElement('button');
+        btn.textContent = 'Show Leaderboard';
+        btn.id = 'leaderBtn';
+        para.textContent = 'You are a premium member.';
+        premium.appendChild(para);
+        premium.appendChild(btn);
+
+        // Attach event listener to the dynamically added button
+        btn.addEventListener('click', showLeaderboard);
+
+        alert('Welcome Premium Member!');
+      } else {
+        document.querySelector('#leaders').style.display = 'none';
+      }
+    })
+    .catch((error) => {
+      console.error('Error fetching user details:', error);
+    });
 });
 
 function fetchExpenses() {
@@ -88,7 +120,7 @@ function buyPremium() {
   axios
     .post(
       '/expense/create-premium-order',
-      { amount: 500 },
+      {},
       {
         headers: { Authorization: token },
       }
@@ -118,10 +150,22 @@ function buyPremium() {
             )
             .then((successResponse) => {
               alert('You are now a premium user!');
+              if (successResponse.data.isPremium) {
+                document.querySelector('#premiumForm').style.display = 'none';
+                const premium = document.querySelector('.premium');
+                const para = document.createElement('p');
+                const btn = document.createElement('button');
+                btn.textContent = 'Show Leaderboard';
+                btn.id = 'leaderBtn';
+                para.textContent = 'You are a premium member.';
+                premium.appendChild(para);
+                premium.appendChild(btn);
+
+                btn.addEventListener('click', showLeaderboard);
+              }
             })
             .catch((error) => {
               alert('Payment verification failed.');
-              console.error('Error:', error);
             });
         },
         prefill: {
@@ -138,5 +182,33 @@ function buyPremium() {
     })
     .catch((error) => {
       console.error('Error creating Razorpay order:', error);
+    });
+}
+
+function showLeaderboard() {
+  const token = localStorage.getItem('token');
+  axios
+    .get('/expense/leaderboard', { headers: { Authorization: token } })
+    .then((response) => {
+      const leaders = response.data.leaders;
+      const expenseList = document.querySelector('#leaderList');
+      expenseList.innerHTML = '';
+
+      if (leaders.length === 0) {
+        const message = document.createElement('p');
+        message.textContent =
+          'No premium members are currently listed in the leaderboard.';
+        expenseList.appendChild(message);
+        return;
+      }
+
+      leaders.forEach(function (leader) {
+        const li = document.createElement('li');
+        li.textContent = `${leader.username} >> ${leader.totalExpense}`;
+        expenseList.appendChild(li);
+      });
+    })
+    .catch(function (error) {
+      console.error('Error fetching leaderboard:', error);
     });
 }

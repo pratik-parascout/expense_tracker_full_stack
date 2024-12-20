@@ -38,6 +38,18 @@ router.post(
   expenseController.paymentStatus
 );
 
+router.get(
+  '/isPremium',
+  userAuthentication.authenticate,
+  expenseController.getUserDetails
+);
+
+router.get(
+  '/leaderboard',
+  userAuthentication.authenticate,
+  expenseController.getLeaderboard
+);
+
 // Serve the expense page
 router.get('/', expenseController.getHome);
 

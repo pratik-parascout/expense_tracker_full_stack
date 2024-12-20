@@ -43,18 +43,25 @@
           </div>
           <button type="submit">Add Expense</button>
         </form>
-        <form id="premiumForm">
-          <button
-            type="submit"
-            id="premium"
-            style="background-color: rgb(212, 168, 58)"
-          >
-            Buy Premium
-          </button>
-        </form>
+        <div class="premium">
+          <form id="premiumForm">
+            <button
+              type="submit"
+              id="premium"
+              style="background-color: rgb(212, 168, 58)"
+            >
+              Buy Premium
+            </button>
+          </form>
+        </div>
       </main>
       <main class="card">
+        <h2>Expenses</h2>
         <ul id="expenseList"></ul>
+      </main>
+      <main class="card" id="leaders">
+        <h2>Leaderboard</h2>
+        <ul id="leaderList"></ul>
       </main>
     </div>
 

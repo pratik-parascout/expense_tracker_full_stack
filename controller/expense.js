@@ -5,6 +5,7 @@ const crypto = require('crypto');
 const razorpay_key = process.env.RAZORPAY_KEY_ID;
 const razorpay_secret = process.env.RAZORPAY_KEY_SECRET;
 const User = require('../model/User');
+const sequelize = require('../utils/database');
 
 const instance = new razorpay({
   key_id: razorpay_key,
@@ -122,5 +123,60 @@ exports.paymentStatus = async (req, res) => {
   } catch (error) {
     console.error('Error verifying payment status:', error);
     res.status(500).json({ msg: 'Internal server error.' });
+  }
+};
+
+exports.getUserDetails = (req, res) => {
+  try {
+    const user = req.user; // Retrieved from authentication middleware
+    res.status(200).json({
+      userId: user.id,
+      isPremium: user.isPremium,
+    });
+  } catch (error) {
+    console.error('Error fetching user details:', error);
+    res.status(500).json({ msg: 'Internal server error.' });
+  }
+};
+
+exports.getLeaderboard = async (req, res) => {
+  try {
+    const premiumUsers = await User.findAll({
+      attributes: ['id', 'username', 'isPremium'],
+      where: { isPremium: true },
+    });
+
+    const expenses = await Expense.findAll({
+      attributes: [
+        'userId',
+        [sequelize.fn('SUM', sequelize.col('amount')), 'totalExpense'],
+      ],
+      where: {
+        userId: premiumUsers.map((user) => user.id),
+      },
+      group: ['userId'],
+    });
+
+    const expenseMap = {};
+    expenses.forEach((expense) => {
+      expenseMap[expense.userId] = expense.get('totalExpense');
+    });
+
+    const leaderboard = premiumUsers
+      .map((user) => {
+        const totalExpense = expenseMap[user.id] || 0;
+        return {
+          username: user.username,
+          totalExpense,
+        };
+      })
+      .filter((leader) => leader.totalExpense > 0);
+
+    leaderboard.sort((a, b) => b.totalExpense - a.totalExpense);
+
+    res.status(200).json({ leaders: leaderboard });
+  } catch (error) {
+    console.error('Error fetching leaderboard:', error);
+    res.status(500).json({ error: 'Failed to fetch leaderboard' });
   }
 };
