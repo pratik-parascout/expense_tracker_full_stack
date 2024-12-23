@@ -16,7 +16,7 @@ exports.getHome = (req, res) => {
   res.sendFile(path.join(__dirname, '../public/html/expense.html'));
 };
 
-exports.postExpense = (req, res) => {
+exports.postExpense = async (req, res) => {
   const { amount, description, category } = req.body;
 
   // Validate data
@@ -24,21 +24,25 @@ exports.postExpense = (req, res) => {
     return res.status(400).json({ msg: 'All fields are required.' });
   }
 
-  Expense.create({
-    amount,
-    description,
-    category,
-    userId: req.user.id,
-  })
-    .then((result) => {
-      res
-        .status(201)
-        .json({ msg: 'Expense added successfully!', expense: result });
-    })
-    .catch((err) => {
-      console.error('Error creating expense:', err);
-      res.status(500).json({ msg: 'Failed to add expense. Please try again.' });
+  try {
+    // Create the expense
+    const expense = await Expense.create({
+      amount,
+      description,
+      category,
+      userId: req.user.id,
     });
+
+    // Increment the user's totalExpense
+    const user = await User.findByPk(req.user.id);
+    user.totalExpense += parseFloat(amount);
+    await user.save();
+
+    res.status(201).json({ msg: 'Expense added successfully!', expense });
+  } catch (err) {
+    console.error('Error creating expense:', err);
+    res.status(500).json({ msg: 'Failed to add expense. Please try again.' });
+  }
 };
 
 exports.getExpenses = (req, res) => {
@@ -55,25 +59,31 @@ exports.getExpenses = (req, res) => {
     });
 };
 
-exports.deleteExpense = (req, res) => {
+exports.deleteExpense = async (req, res) => {
   const { id } = req.params;
 
-  Expense.destroy({
-    where: { id },
-    userId: req.user.id,
-  })
-    .then((rowsDeleted) => {
-      if (rowsDeleted === 0) {
-        return res.status(404).json({ msg: 'Expense not found.' });
-      }
-      res.status(200).json({ msg: 'Expense deleted successfully.' });
-    })
-    .catch((err) => {
-      console.error('Error deleting expense:', err);
-      res
-        .status(500)
-        .json({ msg: 'Failed to delete expense. Please try again.' });
+  try {
+    const expense = await Expense.findOne({
+      where: { id, userId: req.user.id },
     });
+
+    if (!expense) {
+      return res.status(404).json({ msg: 'Expense not found.' });
+    }
+
+    const user = await User.findByPk(req.user.id);
+    user.totalExpense -= parseFloat(expense.amount);
+    await user.save();
+
+    await expense.destroy();
+
+    res.status(200).json({ msg: 'Expense deleted successfully.' });
+  } catch (err) {
+    console.error('Error deleting expense:', err);
+    res
+      .status(500)
+      .json({ msg: 'Failed to delete expense. Please try again.' });
+  }
 };
 
 exports.createOrder = async (req, res) => {
@@ -142,24 +152,14 @@ exports.getUserDetails = (req, res) => {
 exports.getLeaderboard = async (req, res) => {
   try {
     const leaderboard = await User.findAll({
-      attributes: [
-        'username',
-        [sequelize.fn('SUM', sequelize.col('expenses.amount')), 'totalExpense'],
-      ],
+      attributes: ['username', 'totalExpense'],
       where: { isPremium: true },
-      include: [
-        {
-          model: Expense,
-          attributes: [],
-        },
-      ],
-      group: ['user.id'],
-      order: [[sequelize.fn('SUM', sequelize.col('expenses.amount')), 'DESC']],
+      order: [['totalExpense', 'DESC']], // Order directly by the totalExpense column
     });
 
     const leaders = leaderboard.map((entry) => ({
       username: entry.username,
-      totalExpense: entry.get('totalExpense'),
+      totalExpense: entry.totalExpense,
     }));
 
     res.status(200).json({ leaders });
