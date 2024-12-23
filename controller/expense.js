@@ -141,40 +141,28 @@ exports.getUserDetails = (req, res) => {
 
 exports.getLeaderboard = async (req, res) => {
   try {
-    const premiumUsers = await User.findAll({
-      attributes: ['id', 'username', 'isPremium'],
-      where: { isPremium: true },
-    });
-
-    const expenses = await Expense.findAll({
+    const leaderboard = await User.findAll({
       attributes: [
-        'userId',
-        [sequelize.fn('SUM', sequelize.col('amount')), 'totalExpense'],
+        'username',
+        [sequelize.fn('SUM', sequelize.col('expenses.amount')), 'totalExpense'],
       ],
-      where: {
-        userId: premiumUsers.map((user) => user.id),
-      },
-      group: ['userId'],
+      where: { isPremium: true },
+      include: [
+        {
+          model: Expense,
+          attributes: [],
+        },
+      ],
+      group: ['user.id'],
+      order: [[sequelize.fn('SUM', sequelize.col('expenses.amount')), 'DESC']],
     });
 
-    const expenseMap = {};
-    expenses.forEach((expense) => {
-      expenseMap[expense.userId] = expense.get('totalExpense');
-    });
+    const leaders = leaderboard.map((entry) => ({
+      username: entry.username,
+      totalExpense: entry.get('totalExpense'),
+    }));
 
-    const leaderboard = premiumUsers
-      .map((user) => {
-        const totalExpense = expenseMap[user.id] || 0;
-        return {
-          username: user.username,
-          totalExpense,
-        };
-      })
-      .filter((leader) => leader.totalExpense > 0);
-
-    leaderboard.sort((a, b) => b.totalExpense - a.totalExpense);
-
-    res.status(200).json({ leaders: leaderboard });
+    res.status(200).json({ leaders });
   } catch (error) {
     console.error('Error fetching leaderboard:', error);
     res.status(500).json({ error: 'Failed to fetch leaderboard' });
