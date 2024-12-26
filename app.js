@@ -9,6 +9,7 @@ const sequelize = require('./utils/database');
 const signupRoute = require('./routes/signup');
 const loginRoute = require('./routes/login');
 const expenseRoute = require('./routes/expense');
+const passwordRoute = require('./routes/forgetpassword');
 
 const User = require('./model/User');
 const Expense = require('./model/Expense');
@@ -24,6 +25,7 @@ app.use(express.static(path.join(__dirname, 'public')));
 app.use('/signup', signupRoute);
 app.use('/login', loginRoute);
 app.use('/expense', expenseRoute);
+app.use('/password', passwordRoute);
 
 User.hasMany(Expense, { onDelete: 'CASCADE', foreignKey: 'userId' });
 Expense.belongsTo(User, { foreignKey: 'userId' });

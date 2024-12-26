@@ -20,6 +20,7 @@
     "mysql2": "^3.11.5",
     "nodemon": "^3.1.7",
     "razorpay": "^2.9.5",
-    "sequelize": "^6.37.5"
+    "sequelize": "^6.37.5",
+    "sib-api-v3-sdk": "^8.5.0"
   }
 }

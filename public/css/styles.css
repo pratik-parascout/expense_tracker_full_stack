@@ -75,6 +75,13 @@ button:hover {
   margin-top: 2rem;
 }
 
+#resetPassword {
+  text-decoration: none;
+  color: #6cc4bf;
+  align-self: center;
+  margin-top: 2rem;
+}
+
 #expenseList li {
   list-style-type: none;
   margin: 10px 0;
