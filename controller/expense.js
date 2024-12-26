@@ -24,22 +24,29 @@ exports.postExpense = async (req, res) => {
     return res.status(400).json({ msg: 'All fields are required.' });
   }
 
+  const t = await sequelize.transaction();
+
   try {
     // Create the expense
-    const expense = await Expense.create({
-      amount,
-      description,
-      category,
-      userId: req.user.id,
-    });
+    const expense = await Expense.create(
+      {
+        amount,
+        description,
+        category,
+        userId: req.user.id,
+      },
+      { transaction: t }
+    );
 
     // Increment the user's totalExpense
-    const user = await User.findByPk(req.user.id);
+    const user = await User.findByPk(req.user.id, { transaction: t });
     user.totalExpense += parseFloat(amount);
-    await user.save();
+    await user.save({ transaction: t });
 
+    await t.commit();
     res.status(201).json({ msg: 'Expense added successfully!', expense });
   } catch (err) {
+    await t.rollback();
     console.error('Error creating expense:', err);
     res.status(500).json({ msg: 'Failed to add expense. Please try again.' });
   }
@@ -62,23 +69,28 @@ exports.getExpenses = (req, res) => {
 exports.deleteExpense = async (req, res) => {
   const { id } = req.params;
 
+  const t = await sequelize.transaction();
+
   try {
     const expense = await Expense.findOne({
       where: { id, userId: req.user.id },
+      transaction: t,
     });
 
     if (!expense) {
       return res.status(404).json({ msg: 'Expense not found.' });
     }
 
-    const user = await User.findByPk(req.user.id);
+    const user = await User.findByPk(req.user.id, { transaction: t });
     user.totalExpense -= parseFloat(expense.amount);
-    await user.save();
+    await user.save({ transaction: t });
 
-    await expense.destroy();
+    await expense.destroy({ transaction: t });
 
+    await t.commit();
     res.status(200).json({ msg: 'Expense deleted successfully.' });
   } catch (err) {
+    await t.rollback();
     console.error('Error deleting expense:', err);
     res
       .status(500)
@@ -109,6 +121,8 @@ exports.paymentStatus = async (req, res) => {
   const { razorpay_payment_id, razorpay_order_id, razorpay_signature } =
     req.body;
 
+  const t = await sequelize.transaction();
+
   try {
     const hmac = crypto.createHmac('sha256', process.env.RAZORPAY_KEY_SECRET);
     hmac.update(razorpay_order_id + '|' + razorpay_payment_id);
@@ -119,8 +133,9 @@ exports.paymentStatus = async (req, res) => {
 
       if (user) {
         user.isPremium = true;
-        await user.save();
+        await user.save({ transaction: t });
 
+        await t.commit();
         res
           .status(200)
           .json({ msg: 'Payment verified and user upgraded to premium.' });
@@ -131,6 +146,7 @@ exports.paymentStatus = async (req, res) => {
       res.status(400).json({ msg: 'Payment verification failed.' });
     }
   } catch (error) {
+    await t.rollback();
     console.error('Error verifying payment status:', error);
     res.status(500).json({ msg: 'Internal server error.' });
   }
