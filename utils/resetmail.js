@@ -1,7 +1,8 @@
 require('dotenv').config();
 const SibApiV3Sdk = require('sib-api-v3-sdk');
 
-exports.sendResetEmail = async (email) => {
+exports.sendResetEmail = async (email, id) => {
+  // Pass id as parameter
   try {
     const client = SibApiV3Sdk.ApiClient.instance;
 
@@ -10,13 +11,14 @@ exports.sendResetEmail = async (email) => {
 
     const transactionalEmailApi = new SibApiV3Sdk.TransactionalEmailsApi();
 
+    // Create the reset URL dynamically using the id
+    const resetUrl = `http://localhost:3000/password/resetpassword/${id}`;
+
     const emailData = {
       sender: { email: 'notparascout@gmail.com', name: 'trackall' },
       to: [{ email }],
-      templateId: 1,
-      params: {
-        reset_url: 'http://yourwebsite.com/reset-password-link',
-      },
+      subject: 'Password Reset Request',
+      textContent: `Hello,\n\nHere is your password reset link:\n${resetUrl}\n\nIf you did not request this, please ignore this email.\n\nBest regards,\nThe TrackAll Team`,
     };
 
     const response = await transactionalEmailApi.sendTransacEmail(emailData);

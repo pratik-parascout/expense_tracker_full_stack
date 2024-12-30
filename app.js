@@ -13,6 +13,7 @@ const passwordRoute = require('./routes/forgetpassword');
 
 const User = require('./model/User');
 const Expense = require('./model/Expense');
+const ForgotPasswordRequest = require('./model/ForgetPasswordRequest');
 
 const app = express();
 
@@ -29,6 +30,10 @@ app.use('/password', passwordRoute);
 
 User.hasMany(Expense, { onDelete: 'CASCADE', foreignKey: 'userId' });
 Expense.belongsTo(User, { foreignKey: 'userId' });
+User.hasMany(ForgotPasswordRequest);
+ForgotPasswordRequest.belongsTo(User, {
+  onDelete: 'CASCADE',
+});
 
 sequelize
   .sync()
