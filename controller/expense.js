@@ -1,16 +1,65 @@
 const path = require('path');
+
 const Expense = require('../model/Expense');
 const razorpay = require('razorpay');
 const crypto = require('crypto');
-const razorpay_key = process.env.RAZORPAY_KEY_ID;
-const razorpay_secret = process.env.RAZORPAY_KEY_SECRET;
 const User = require('../model/User');
 const sequelize = require('../utils/database');
+const AWS = require('aws-sdk');
+
+const razorpay_key = process.env.RAZORPAY_KEY_ID;
+const razorpay_secret = process.env.RAZORPAY_KEY_SECRET;
+const bucket_name = process.env.BUCKET_NAME;
+const aws_access_key = process.env.AWS_ACCESS_KEY;
+const aws_access_key_secret = process.env.AWS_ACCESS_KEY_SECRET;
 
 const instance = new razorpay({
   key_id: razorpay_key,
   key_secret: razorpay_secret,
 });
+
+function uploadToS3(data, filename) {
+  let s3bucket = new AWS.S3({
+    accessKeyId: aws_access_key,
+    secretAccessKey: aws_access_key_secret,
+    // Bucket: bucket_name
+  });
+
+  var params = {
+    Bucket: bucket_name,
+    Key: filename,
+    Body: data,
+    ACL: 'public-read',
+  };
+  return new Promise((resolve, reject) => {
+    s3bucket.upload(params, (err, res) => {
+      if (err) {
+        console.log('Something went wrong', err);
+        reject(err);
+      } else {
+        // console.log('success', res);
+        resolve(res.Location);
+      }
+    });
+  });
+}
+
+exports.getDownload = async (req, res) => {
+  try {
+    const expenses = await req.user.getExpenses();
+    // console.log(expenses);
+    const stringifiedExpense = JSON.stringify(expenses);
+    const userId = req.user.id;
+    const fileName = `Expense${userId}/${new Date()}.txt`;
+    const fileURL = await uploadToS3(stringifiedExpense, fileName);
+    res.status(200).json({ fileURL, success: true });
+  } catch (err) {
+    console.log(err);
+    res.status(500).json({
+      success: false,
+    });
+  }
+};
 
 exports.getHome = (req, res) => {
   res.sendFile(path.join(__dirname, '../public/html/expense.html'));
