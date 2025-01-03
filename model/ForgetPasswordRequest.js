@@ -1,6 +1,5 @@
 const Sequelize = require('sequelize');
 const sequelize = require('../utils/database');
-const User = require('./User');
 const { v4: uuidv4 } = require('uuid');
 
 const ForgotPasswordRequest = sequelize.define('forgotPasswordRequest', {

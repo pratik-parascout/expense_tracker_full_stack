@@ -10,6 +10,7 @@ const signupRoute = require('./routes/signup');
 const loginRoute = require('./routes/login');
 const expenseRoute = require('./routes/expense');
 const passwordRoute = require('./routes/forgetpassword');
+const reportRoute = require('./routes/report');
 
 const User = require('./model/User');
 const Expense = require('./model/Expense');
@@ -27,6 +28,7 @@ app.use('/signup', signupRoute);
 app.use('/login', loginRoute);
 app.use('/expense', expenseRoute);
 app.use('/password', passwordRoute);
+app.use('/report', reportRoute);
 
 User.hasMany(Expense, { onDelete: 'CASCADE', foreignKey: 'userId' });
 Expense.belongsTo(User, { foreignKey: 'userId' });
