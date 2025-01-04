@@ -1,62 +1,44 @@
+// controllers/ExpenseController.js
 const path = require('path');
+const ExpenseService = require('../services/ExpenseServices');
+const { validationResult } = require('express-validator');
 
-const Expense = require('../model/Expense');
-const razorpay = require('razorpay');
-const crypto = require('crypto');
-const User = require('../model/User');
-const sequelize = require('../utils/database');
-const AWS = require('aws-sdk');
-
-const razorpay_key = process.env.RAZORPAY_KEY_ID;
-const razorpay_secret = process.env.RAZORPAY_KEY_SECRET;
-const bucket_name = process.env.BUCKET_NAME;
-const aws_access_key = process.env.AWS_ACCESS_KEY;
-const aws_access_key_secret = process.env.AWS_ACCESS_KEY_SECRET;
-
-const instance = new razorpay({
-  key_id: razorpay_key,
-  key_secret: razorpay_secret,
-});
-
-function uploadToS3(data, filename) {
-  let s3bucket = new AWS.S3({
-    accessKeyId: aws_access_key,
-    secretAccessKey: aws_access_key_secret,
-    // Bucket: bucket_name
-  });
-
-  var params = {
-    Bucket: bucket_name,
-    Key: filename,
-    Body: data,
-    ACL: 'public-read',
-  };
-  return new Promise((resolve, reject) => {
-    s3bucket.upload(params, (err, res) => {
-      if (err) {
-        console.log('Something went wrong', err);
-        reject(err);
-      } else {
-        // console.log('success', res);
-        resolve(res.Location);
-      }
+exports.getDownloads = async (req, res) => {
+  try {
+    const userId = req.user.id;
+    const downloads = await ExpenseService.getDownloads(userId); // Get the downloads using service
+    res.status(200).json({ downloads });
+  } catch (err) {
+    console.error('Error fetching downloads:', err);
+    res.status(500).json({
+      success: false,
+      message: 'Failed to fetch downloaded files.',
     });
-  });
-}
+  }
+};
 
 exports.getDownload = async (req, res) => {
   try {
     const expenses = await req.user.getExpenses();
-    // console.log(expenses);
     const stringifiedExpense = JSON.stringify(expenses);
     const userId = req.user.id;
-    const fileName = `Expense${userId}/${new Date()}.txt`;
-    const fileURL = await uploadToS3(stringifiedExpense, fileName);
+    const fileName = `Expense${userId}/${new Date().toISOString()}.txt`;
+
+    // Upload the file to S3 and get the URL
+    const fileURL = await ExpenseService.uploadToS3(
+      stringifiedExpense,
+      fileName
+    );
+
+    // Create a record of the download
+    await ExpenseService.createDownloadRecord(fileName, fileURL, req.user.id);
+
     res.status(200).json({ fileURL, success: true });
   } catch (err) {
-    console.log(err);
+    console.error('Error in getDownload:', err);
     res.status(500).json({
       success: false,
+      message: 'An error occurred while processing the request.',
     });
   }
 };
@@ -68,97 +50,49 @@ exports.getHome = (req, res) => {
 exports.postExpense = async (req, res) => {
   const { amount, description, category } = req.body;
 
-  // Validate data
-  if (!amount || !description || !category) {
-    return res.status(400).json({ msg: 'All fields are required.' });
+  const errors = validationResult(req);
+  if (!errors.isEmpty()) {
+    return res.status(400).json({ errors: errors.array() });
   }
 
-  const t = await sequelize.transaction();
-
   try {
-    // Create the expense
-    const expense = await Expense.create(
-      {
-        amount,
-        description,
-        category,
-        userId: req.user.id,
-      },
-      { transaction: t }
+    const expense = await ExpenseService.createExpense(
+      amount,
+      description,
+      category,
+      req.user.id
     );
-
-    // Increment the user's totalExpense
-    const user = await User.findByPk(req.user.id, { transaction: t });
-    user.totalExpense += parseFloat(amount);
-    await user.save({ transaction: t });
-
-    await t.commit();
     res.status(201).json({ msg: 'Expense added successfully!', expense });
   } catch (err) {
-    await t.rollback();
-    console.error('Error creating expense:', err);
-    res.status(500).json({ msg: 'Failed to add expense. Please try again.' });
+    res.status(500).json({ msg: err.message });
   }
 };
 
-exports.getExpenses = (req, res) => {
-  req.user
-    .getExpenses()
-    .then((expenses) => {
-      res.status(200).json({ expenses });
-    })
-    .catch((err) => {
-      console.error('Error fetching expenses:', err);
-      res
-        .status(500)
-        .json({ msg: 'Failed to fetch expenses. Please try again.' });
-    });
+exports.getExpenses = async (req, res) => {
+  try {
+    const expenses = await ExpenseService.getExpenses(req.user.id);
+    res.status(200).json({ expenses });
+  } catch (err) {
+    console.error('Error fetching expenses:', err);
+    res
+      .status(500)
+      .json({ msg: 'Failed to fetch expenses. Please try again.' });
+  }
 };
 
 exports.deleteExpense = async (req, res) => {
   const { id } = req.params;
-
-  const t = await sequelize.transaction();
-
   try {
-    const expense = await Expense.findOne({
-      where: { id, userId: req.user.id },
-      transaction: t,
-    });
-
-    if (!expense) {
-      return res.status(404).json({ msg: 'Expense not found.' });
-    }
-
-    const user = await User.findByPk(req.user.id, { transaction: t });
-    user.totalExpense -= parseFloat(expense.amount);
-    await user.save({ transaction: t });
-
-    await expense.destroy({ transaction: t });
-
-    await t.commit();
+    await ExpenseService.deleteExpense(id, req.user.id);
     res.status(200).json({ msg: 'Expense deleted successfully.' });
   } catch (err) {
-    await t.rollback();
-    console.error('Error deleting expense:', err);
-    res
-      .status(500)
-      .json({ msg: 'Failed to delete expense. Please try again.' });
+    res.status(500).json({ msg: err.message });
   }
 };
 
 exports.createOrder = async (req, res) => {
   try {
-    const amount = 500 * 100;
-
-    const options = {
-      amount: amount,
-      currency: 'INR',
-      receipt: `premium-order-${Date.now()}`,
-      payment_capture: 1,
-    };
-
-    const order = await instance.orders.create(options);
+    const order = await ExpenseService.createOrder();
     res.status(200).json({ order });
   } catch (error) {
     console.error('Error creating Razorpay order:', error);
@@ -170,32 +104,17 @@ exports.paymentStatus = async (req, res) => {
   const { razorpay_payment_id, razorpay_order_id, razorpay_signature } =
     req.body;
 
-  const t = await sequelize.transaction();
-
   try {
-    const hmac = crypto.createHmac('sha256', process.env.RAZORPAY_KEY_SECRET);
-    hmac.update(razorpay_order_id + '|' + razorpay_payment_id);
-    const generated_signature = hmac.digest('hex');
-
-    if (generated_signature === razorpay_signature) {
-      const user = req.user;
-
-      if (user) {
-        user.isPremium = true;
-        await user.save({ transaction: t });
-
-        await t.commit();
-        res
-          .status(200)
-          .json({ msg: 'Payment verified and user upgraded to premium.' });
-      } else {
-        res.status(404).json({ msg: 'User not found.' });
-      }
-    } else {
-      res.status(400).json({ msg: 'Payment verification failed.' });
-    }
+    await ExpenseService.verifyPayment(
+      razorpay_payment_id,
+      razorpay_order_id,
+      razorpay_signature,
+      req.user.id
+    );
+    res
+      .status(200)
+      .json({ msg: 'Payment verified and user upgraded to premium.' });
   } catch (error) {
-    await t.rollback();
     console.error('Error verifying payment status:', error);
     res.status(500).json({ msg: 'Internal server error.' });
   }
@@ -203,7 +122,7 @@ exports.paymentStatus = async (req, res) => {
 
 exports.getUserDetails = (req, res) => {
   try {
-    const user = req.user; // Retrieved from authentication middleware
+    const user = req.user;
     res.status(200).json({
       userId: user.id,
       isPremium: user.isPremium,
@@ -216,17 +135,7 @@ exports.getUserDetails = (req, res) => {
 
 exports.getLeaderboard = async (req, res) => {
   try {
-    const leaderboard = await User.findAll({
-      attributes: ['username', 'totalExpense'],
-      where: { isPremium: true },
-      order: [['totalExpense', 'DESC']], // Order directly by the totalExpense column
-    });
-
-    const leaders = leaderboard.map((entry) => ({
-      username: entry.username,
-      totalExpense: entry.totalExpense,
-    }));
-
+    const leaders = await ExpenseService.getLeaderboard();
     res.status(200).json({ leaders });
   } catch (error) {
     console.error('Error fetching leaderboard:', error);

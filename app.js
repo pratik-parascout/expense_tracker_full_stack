@@ -15,6 +15,7 @@ const reportRoute = require('./routes/report');
 const User = require('./model/User');
 const Expense = require('./model/Expense');
 const ForgotPasswordRequest = require('./model/ForgetPasswordRequest');
+const DownloadList = require('./model/FileDownloaded');
 
 const app = express();
 
@@ -36,9 +37,11 @@ User.hasMany(ForgotPasswordRequest);
 ForgotPasswordRequest.belongsTo(User, {
   onDelete: 'CASCADE',
 });
+User.hasMany(DownloadList, { foreignKey: 'userId', onDelete: 'CASCADE' });
+DownloadList.belongsTo(User, { foreignKey: 'userId' });
 
 sequelize
-  .sync()
+  .sync({ alter: true })
   .then((result) => {
     app.listen(3000);
   })

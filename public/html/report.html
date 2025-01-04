@@ -12,6 +12,7 @@
       <h1>Day to Day Expenses</h1>
       <h2>2025</h2>
 
+      <!-- Existing Sections -->
       <section class="monthly-report">
         <h3>March 2025</h3>
         <table>
@@ -33,7 +34,7 @@
               <td>50</td>
             </tr>
             <tr>
-              <td>03-03-2021</td>
+              <td>03-03-2025</td>
               <td>Salary</td>
               <td>Income</td>
               <td>45,000</td>
@@ -86,10 +87,29 @@
           </tbody>
         </table>
       </section>
+
+      <!-- New Section for Downloaded Files -->
+      <section class="downloads-report">
+        <h3>Downloaded Files</h3>
+        <table id="downloads-table">
+          <thead>
+            <tr>
+              <th>File Name</th>
+              <th>Download Link</th>
+            </tr>
+          </thead>
+          <tbody>
+            <!-- Dynamically populated rows will go here -->
+          </tbody>
+        </table>
+      </section>
     </div>
-    <a href="#" class="download-button" id="download" title="Download">
-      &#x2B07;
-    </a>
+
+    <!-- Download Button -->
+    <a href="#" class="download-button" id="download" title="Download"
+      >&#x2B07;</a
+    >
+
+    <script src="/js/report.js"></script>
   </body>
-  <script src="/js/report.js"></script>
 </html>

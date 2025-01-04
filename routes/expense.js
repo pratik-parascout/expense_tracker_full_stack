@@ -56,6 +56,12 @@ router.get(
   expenseController.getDownload
 );
 
+router.get(
+  '/downloads',
+  userAuthentication.authenticate,
+  expenseController.getDownloads
+);
+
 // Serve the expense page
 router.get('/', expenseController.getHome);
 

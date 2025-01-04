@@ -25,24 +25,29 @@ document.addEventListener('DOMContentLoaded', function () {
     .then((response) => {
       const isPremium = response.data.isPremium;
 
+      // Show the leaderboard button for all users
+      const premium = document.querySelector('.premium');
+      const para = document.createElement('p');
+      const btn = document.createElement('button');
+      btn.textContent = 'Show Leaderboard';
+      btn.id = 'leaderBtn';
+      para.textContent = isPremium
+        ? 'You are a premium member.'
+        : 'You are a regular user.';
+      premium.appendChild(para);
+      premium.appendChild(btn);
+
+      // Attach event listener to the dynamically added button
+      btn.addEventListener('click', showLeaderboard);
+
+      // Handle premium membership specific actions
       if (isPremium) {
         // Hide the premiumForm for premium members
         document.querySelector('#premiumForm').style.display = 'none';
-        const premium = document.querySelector('.premium');
-        const para = document.createElement('p');
-        const btn = document.createElement('button');
-        btn.textContent = 'Show Leaderboard';
-        btn.id = 'leaderBtn';
-        para.textContent = 'You are a premium member.';
-        premium.appendChild(para);
-        premium.appendChild(btn);
-
-        // Attach event listener to the dynamically added button
-        btn.addEventListener('click', showLeaderboard);
 
         alert('Welcome Premium Member!');
       } else {
-        document.querySelector('#leaders').style.display = 'none';
+        document.querySelector('#leaders').style.display = 'block';
       }
     })
     .catch((error) => {
