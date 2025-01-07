@@ -1,4 +1,3 @@
-// controllers/ExpenseController.js
 const path = require('path');
 const ExpenseService = require('../services/ExpenseServices');
 const { validationResult } = require('express-validator');
@@ -6,7 +5,7 @@ const { validationResult } = require('express-validator');
 exports.getDownloads = async (req, res) => {
   try {
     const userId = req.user.id;
-    const downloads = await ExpenseService.getDownloads(userId); // Get the downloads using service
+    const downloads = await ExpenseService.getDownloads(userId);
     res.status(200).json({ downloads });
   } catch (err) {
     console.error('Error fetching downloads:', err);
@@ -24,13 +23,11 @@ exports.getDownload = async (req, res) => {
     const userId = req.user.id;
     const fileName = `Expense${userId}/${new Date().toISOString()}.txt`;
 
-    // Upload the file to S3 and get the URL
     const fileURL = await ExpenseService.uploadToS3(
       stringifiedExpense,
       fileName
     );
 
-    // Create a record of the download
     await ExpenseService.createDownloadRecord(fileName, fileURL, req.user.id);
 
     res.status(200).json({ fileURL, success: true });
@@ -69,14 +66,35 @@ exports.postExpense = async (req, res) => {
 };
 
 exports.getExpenses = async (req, res) => {
+  const { page = 1, limit = 10 } = req.query;
+
   try {
-    const expenses = await ExpenseService.getExpenses(req.user.id);
-    res.status(200).json({ expenses });
+    const userId = req.user.id;
+    const offset = (page - 1) * limit;
+    const { rows: expenses, count: totalExpenses } =
+      await ExpenseService.getPaginatedExpenses(
+        userId,
+        parseInt(limit),
+        parseInt(offset)
+      );
+
+    const totalPages = Math.ceil(totalExpenses / limit);
+
+    res.status(200).json({
+      expenses,
+      pagination: {
+        totalExpenses,
+        totalPages,
+        currentPage: parseInt(page),
+        hasNextPage: page < totalPages,
+        hasPrevPage: page > 1,
+      },
+    });
   } catch (err) {
-    console.error('Error fetching expenses:', err);
-    res
-      .status(500)
-      .json({ msg: 'Failed to fetch expenses. Please try again.' });
+    console.error('Error fetching paginated expenses:', err);
+    res.status(500).json({
+      msg: 'Failed to fetch expenses. Please try again.',
+    });
   }
 };
 

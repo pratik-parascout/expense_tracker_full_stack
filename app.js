@@ -41,7 +41,7 @@ User.hasMany(DownloadList, { foreignKey: 'userId', onDelete: 'CASCADE' });
 DownloadList.belongsTo(User, { foreignKey: 'userId' });
 
 sequelize
-  .sync({ alter: true })
+  .sync()
   .then((result) => {
     app.listen(3000);
   })

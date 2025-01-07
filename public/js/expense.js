@@ -1,3 +1,6 @@
+let currentPage = 1;
+const itemsPerPage = 10;
+
 document.addEventListener('DOMContentLoaded', function () {
   fetchExpenses();
 
@@ -19,13 +22,11 @@ document.addEventListener('DOMContentLoaded', function () {
 
   const token = localStorage.getItem('token');
 
-  // Fetch user details
   axios
     .get('/expense/isPremium', { headers: { Authorization: token } })
     .then((response) => {
       const isPremium = response.data.isPremium;
 
-      // Show the leaderboard button for all users
       const premium = document.querySelector('.premium');
       const para = document.createElement('p');
       const btn = document.createElement('button');
@@ -37,12 +38,9 @@ document.addEventListener('DOMContentLoaded', function () {
       premium.appendChild(para);
       premium.appendChild(btn);
 
-      // Attach event listener to the dynamically added button
       btn.addEventListener('click', showLeaderboard);
 
-      // Handle premium membership specific actions
       if (isPremium) {
-        // Hide the premiumForm for premium members
         document.querySelector('#premiumForm').style.display = 'none';
 
         alert('Welcome Premium Member!');
@@ -53,36 +51,89 @@ document.addEventListener('DOMContentLoaded', function () {
     .catch((error) => {
       console.error('Error fetching user details:', error);
     });
-});
 
-function fetchExpenses() {
-  const token = localStorage.getItem('token');
-  axios
-    .get('/expense/expenses', { headers: { Authorization: token } })
-    .then((response) => {
-      const expenses = response.data.expenses;
-      const expenseList = document.querySelector('#expenseList');
+  function fetchExpenses(page = 1) {
+    const token = localStorage.getItem('token');
 
-      expenseList.innerHTML = '';
+    axios
+      .get(`/expense/expenses?page=${page}&limit=${itemsPerPage}`, {
+        headers: { Authorization: token },
+      })
+      .then((response) => {
+        console.log('API Response:', response.data);
+        const { expenses, pagination } = response.data;
 
-      expenses.forEach(function (expense) {
-        const li = document.createElement('li');
-        li.textContent = `Amount: ${expense.amount}, Description: ${expense.description}, Category: ${expense.category}`;
+        if (!pagination) {
+          console.error('Pagination data is missing in API response.');
+          return;
+        }
 
-        const deleteButton = document.createElement('button');
-        deleteButton.textContent = 'Delete';
-        deleteButton.addEventListener('click', function () {
-          deleteExpense(expense.id, li);
+        const expenseList = document.querySelector('#expenseList');
+        expenseList.innerHTML = '';
+
+        expenses.forEach((expense) => {
+          const li = document.createElement('li');
+          li.textContent = `Amount: ${expense.amount}, Description: ${expense.description}, Category: ${expense.category}`;
+
+          const deleteButton = document.createElement('button');
+          deleteButton.textContent = 'Delete';
+          deleteButton.addEventListener('click', () => {
+            deleteExpense(expense.id, li);
+          });
+
+          li.appendChild(deleteButton);
+          expenseList.appendChild(li);
         });
 
-        li.appendChild(deleteButton);
-        expenseList.appendChild(li);
+        updatePaginationButtons(pagination);
+      })
+      .catch((error) => {
+        console.error('Error fetching expenses:', error);
       });
-    })
-    .catch(function (error) {
-      console.error('Error fetching expenses:', error);
-    });
-}
+  }
+
+  function updatePaginationButtons(pagination) {
+    if (!pagination) {
+      console.error('Pagination data is missing.');
+      return;
+    }
+
+    const paginationButtons = document.querySelector('#paginationButtons');
+    if (!paginationButtons) {
+      console.error('Pagination buttons element not found in the DOM.');
+      return;
+    }
+
+    paginationButtons.innerHTML = '';
+    let { currentPage, hasNextPage, hasPrevPage } = pagination;
+
+    if (hasPrevPage) {
+      const prevButton = document.createElement('button');
+      prevButton.id = 'change';
+      prevButton.textContent = 'Previous';
+      prevButton.addEventListener('click', () => {
+        currentPage--;
+        fetchExpenses(currentPage);
+      });
+      paginationButtons.appendChild(prevButton);
+    }
+
+    const pageIndicator = document.createElement('span');
+    pageIndicator.textContent = `Page ${currentPage}`;
+    paginationButtons.appendChild(pageIndicator);
+
+    if (hasNextPage) {
+      const nextButton = document.createElement('button');
+      nextButton.id = 'change';
+      nextButton.textContent = 'Next';
+      nextButton.addEventListener('click', () => {
+        currentPage++;
+        fetchExpenses(currentPage);
+      });
+      paginationButtons.appendChild(nextButton);
+    }
+  }
+});
 
 function addExpense(amount, description, category) {
   const expenseData = {
@@ -97,7 +148,7 @@ function addExpense(amount, description, category) {
       headers: { Authorization: token },
     })
     .then((response) => {
-      fetchExpenses();
+      // fetchExpenses();
       document.querySelector('#expenseForm').reset();
     })
     .catch(function (error) {

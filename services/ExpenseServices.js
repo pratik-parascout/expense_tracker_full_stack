@@ -45,10 +45,6 @@ const getDownloads = (userId) => {
   return DownloadList.findAll({ where: { userId } });
 };
 
-// const createDownloadRecord = async (fileName, fileURL, userId) => {
-//   return await DownloadList.create({ fileName, fileURL, userId });
-// };
-
 const getExpenses = (userId) => {
   return Expense.findAll({ where: { userId } });
 };
@@ -144,6 +140,14 @@ const getLeaderboard = async () => {
   });
 };
 
+const getPaginatedExpenses = (userId, limit, offset) => {
+  return Expense.findAndCountAll({
+    where: { userId },
+    limit,
+    offset,
+  });
+};
+
 module.exports = {
   uploadToS3,
   getDownloads,
@@ -154,4 +158,5 @@ module.exports = {
   createOrder,
   verifyPayment,
   getLeaderboard,
+  getPaginatedExpenses,
 };
