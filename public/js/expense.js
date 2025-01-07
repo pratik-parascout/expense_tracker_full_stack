@@ -1,8 +1,22 @@
 let currentPage = 1;
-const itemsPerPage = 10;
+let itemsPerPage = localStorage.getItem('itemsPerPage')
+  ? parseInt(localStorage.getItem('itemsPerPage'))
+  : 10;
 
 document.addEventListener('DOMContentLoaded', function () {
   fetchExpenses();
+
+  const itemsPerPageDropdown = document.querySelector('#itemsPerPage');
+  itemsPerPageDropdown.value = itemsPerPage;
+
+  itemsPerPageDropdown.addEventListener('change', function () {
+    itemsPerPage = parseInt(this.value);
+    localStorage.setItem('itemsPerPage', itemsPerPage);
+    currentPage = 1;
+    fetchExpenses(currentPage);
+  });
+
+  fetchExpenses(currentPage);
 
   const expenseForm = document.querySelector('#expenseForm');
   expenseForm.addEventListener('submit', function (event) {
@@ -51,88 +65,6 @@ document.addEventListener('DOMContentLoaded', function () {
     .catch((error) => {
       console.error('Error fetching user details:', error);
     });
-
-  function fetchExpenses(page = 1) {
-    const token = localStorage.getItem('token');
-
-    axios
-      .get(`/expense/expenses?page=${page}&limit=${itemsPerPage}`, {
-        headers: { Authorization: token },
-      })
-      .then((response) => {
-        console.log('API Response:', response.data);
-        const { expenses, pagination } = response.data;
-
-        if (!pagination) {
-          console.error('Pagination data is missing in API response.');
-          return;
-        }
-
-        const expenseList = document.querySelector('#expenseList');
-        expenseList.innerHTML = '';
-
-        expenses.forEach((expense) => {
-          const li = document.createElement('li');
-          li.textContent = `Amount: ${expense.amount}, Description: ${expense.description}, Category: ${expense.category}`;
-
-          const deleteButton = document.createElement('button');
-          deleteButton.textContent = 'Delete';
-          deleteButton.addEventListener('click', () => {
-            deleteExpense(expense.id, li);
-          });
-
-          li.appendChild(deleteButton);
-          expenseList.appendChild(li);
-        });
-
-        updatePaginationButtons(pagination);
-      })
-      .catch((error) => {
-        console.error('Error fetching expenses:', error);
-      });
-  }
-
-  function updatePaginationButtons(pagination) {
-    if (!pagination) {
-      console.error('Pagination data is missing.');
-      return;
-    }
-
-    const paginationButtons = document.querySelector('#paginationButtons');
-    if (!paginationButtons) {
-      console.error('Pagination buttons element not found in the DOM.');
-      return;
-    }
-
-    paginationButtons.innerHTML = '';
-    let { currentPage, hasNextPage, hasPrevPage } = pagination;
-
-    if (hasPrevPage) {
-      const prevButton = document.createElement('button');
-      prevButton.id = 'change';
-      prevButton.textContent = 'Previous';
-      prevButton.addEventListener('click', () => {
-        currentPage--;
-        fetchExpenses(currentPage);
-      });
-      paginationButtons.appendChild(prevButton);
-    }
-
-    const pageIndicator = document.createElement('span');
-    pageIndicator.textContent = `Page ${currentPage}`;
-    paginationButtons.appendChild(pageIndicator);
-
-    if (hasNextPage) {
-      const nextButton = document.createElement('button');
-      nextButton.id = 'change';
-      nextButton.textContent = 'Next';
-      nextButton.addEventListener('click', () => {
-        currentPage++;
-        fetchExpenses(currentPage);
-      });
-      paginationButtons.appendChild(nextButton);
-    }
-  }
 });
 
 function addExpense(amount, description, category) {
@@ -267,4 +199,76 @@ function showLeaderboard() {
     .catch(function (error) {
       console.error('Error fetching leaderboard:', error);
     });
+}
+
+function fetchExpenses(page = 1) {
+  const token = localStorage.getItem('token');
+
+  axios
+    .get(`/expense/expenses?page=${page}&limit=${itemsPerPage}`, {
+      headers: { Authorization: token },
+    })
+    .then((response) => {
+      const { expenses, pagination } = response.data;
+      const expenseList = document.querySelector('#expenseList');
+
+      expenseList.innerHTML = '';
+
+      expenses.forEach((expense) => {
+        const li = document.createElement('li');
+        li.textContent = `Amount: ${expense.amount}, Description: ${expense.description}, Category: ${expense.category}`;
+
+        const deleteButton = document.createElement('button');
+        deleteButton.textContent = 'Delete';
+        deleteButton.addEventListener('click', () => {
+          deleteExpense(expense.id, li);
+        });
+
+        li.appendChild(deleteButton);
+        expenseList.appendChild(li);
+      });
+
+      updatePaginationButtons(pagination);
+    })
+    .catch((error) => {
+      console.error('Error fetching expenses:', error);
+    });
+}
+
+function updatePaginationButtons(pagination) {
+  const paginationButtons = document.querySelector('#paginationButtons');
+  if (!paginationButtons) {
+    console.error('#paginationButtons element not found');
+    return;
+  }
+
+  paginationButtons.innerHTML = '';
+
+  const { hasNextPage, hasPrevPage } = pagination;
+
+  if (hasPrevPage) {
+    const prevButton = document.createElement('button');
+    prevButton.id = 'change';
+    prevButton.textContent = 'Previous';
+    prevButton.addEventListener('click', () => {
+      currentPage--;
+      fetchExpenses(currentPage);
+    });
+    paginationButtons.appendChild(prevButton);
+  }
+
+  const pageIndicator = document.createElement('span');
+  pageIndicator.textContent = `Page ${currentPage}`;
+  paginationButtons.appendChild(pageIndicator);
+
+  if (hasNextPage) {
+    const nextButton = document.createElement('button');
+    nextButton.id = 'change';
+    nextButton.textContent = 'Next';
+    nextButton.addEventListener('click', () => {
+      currentPage++;
+      fetchExpenses(currentPage);
+    });
+    paginationButtons.appendChild(nextButton);
+  }
 }
