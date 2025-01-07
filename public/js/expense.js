@@ -4,8 +4,6 @@ let itemsPerPage = localStorage.getItem('itemsPerPage')
   : 10;
 
 document.addEventListener('DOMContentLoaded', function () {
-  fetchExpenses();
-
   const itemsPerPageDropdown = document.querySelector('#itemsPerPage');
   itemsPerPageDropdown.value = itemsPerPage;
 
