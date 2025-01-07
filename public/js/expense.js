@@ -1,104 +1,4 @@
 let currentPage = 1;
-let itemsPerPage = localStorage.getItem('itemsPerPage')
-  ? parseInt(localStorage.getItem('itemsPerPage'))
-  : 10;
-
-document.addEventListener('DOMContentLoaded', function () {
-  const itemsPerPageDropdown = document.querySelector('#itemsPerPage');
-  itemsPerPageDropdown.value = itemsPerPage;
-
-  itemsPerPageDropdown.addEventListener('change', function () {
-    itemsPerPage = parseInt(this.value);
-    localStorage.setItem('itemsPerPage', itemsPerPage);
-    currentPage = 1;
-    fetchExpenses(currentPage);
-  });
-
-  fetchExpenses(currentPage);
-
-  const expenseForm = document.querySelector('#expenseForm');
-  expenseForm.addEventListener('submit', function (event) {
-    event.preventDefault();
-    const amount = parseFloat(document.querySelector('#amount').value);
-    const description = document.querySelector('#description').value;
-    const category = document.querySelector('#category').value;
-
-    addExpense(amount, description, category);
-  });
-
-  const premiumForm = document.querySelector('#premiumForm');
-  premiumForm.addEventListener('submit', function (event) {
-    event.preventDefault();
-    buyPremium();
-  });
-
-  const token = localStorage.getItem('token');
-
-  axios
-    .get('/expense/isPremium', { headers: { Authorization: token } })
-    .then((response) => {
-      const isPremium = response.data.isPremium;
-
-      const premium = document.querySelector('.premium');
-      const para = document.createElement('p');
-      const btn = document.createElement('button');
-      btn.textContent = 'Show Leaderboard';
-      btn.id = 'leaderBtn';
-      para.textContent = isPremium
-        ? 'You are a premium member.'
-        : 'You are a regular user.';
-      premium.appendChild(para);
-      premium.appendChild(btn);
-
-      btn.addEventListener('click', showLeaderboard);
-
-      if (isPremium) {
-        document.querySelector('#premiumForm').style.display = 'none';
-
-        alert('Welcome Premium Member!');
-      } else {
-        document.querySelector('#leaders').style.display = 'block';
-      }
-    })
-    .catch((error) => {
-      console.error('Error fetching user details:', error);
-    });
-});
-
-function addExpense(amount, description, category) {
-  const expenseData = {
-    amount: amount,
-    description: description,
-    category: category,
-  };
-  const token = localStorage.getItem('token');
-
-  axios
-    .post('/expense/add-expense', expenseData, {
-      headers: { Authorization: token },
-    })
-    .then((response) => {
-      // fetchExpenses();
-      document.querySelector('#expenseForm').reset();
-    })
-    .catch(function (error) {
-      console.error('Error adding expense:', error);
-    });
-}
-
-function deleteExpense(id, listItem) {
-  const token = localStorage.getItem('token');
-  axios
-    .delete(`http://localhost:3000/expense/expenses/${id}`, {
-      headers: { Authorization: token },
-    })
-    .then((response) => {
-      listItem.remove();
-    })
-    .catch(function (error) {
-      console.error('Error deleting expense:', error);
-    });
-}
 
 function buyPremium() {
   const token = localStorage.getItem('token');
@@ -113,13 +13,27 @@ function buyPremium() {
     )
     .then((response) => {
       const order = response.data.order;
+      const razorpay_key = response.data.RAZORPAY_KEY_ID;
 
       const options = {
-        key: 'rzp_test_b7p17DaCbmsO02',
+        key: razorpay_key,
         amount: order.amount,
         currency: 'INR',
         name: 'Expense App Premium',
         description: 'Premium Subscription',
+        image: 'https://cdn.razorpay.com/logos/7K3b6d18wHwKzL_medium.png',
+        theme: {
+          color: '#3399cc',
+        },
+        prefill: {
+          name: 'User',
+          email: 'user@example.com',
+        },
+        modal: {
+          ondismiss: function () {
+            console.log('Payment modal closed');
+          },
+        },
         order_id: order.id,
         handler: function (response) {
           axios
@@ -151,122 +65,161 @@ function buyPremium() {
               }
             })
             .catch((error) => {
-              alert('Payment verification failed.');
+              alert('Something went wrong with payment verification');
+              console.error(error);
             });
-        },
-        prefill: {
-          name: 'User Name',
-          email: 'user@example.com',
-        },
-        theme: {
-          color: '#6cc4bf',
         },
       };
 
-      const rzp = new Razorpay(options);
-      rzp.open();
+      const razorpayInstance = new Razorpay(options);
+      razorpayInstance.open();
     })
     .catch((error) => {
-      console.error('Error creating Razorpay order:', error);
+      alert('Something went wrong!');
+      console.error(error);
     });
 }
 
 function showLeaderboard() {
+  const leaderboard = document.querySelector('#leaders');
   const token = localStorage.getItem('token');
+
   axios
-    .get('/expense/leaderboard', { headers: { Authorization: token } })
-    .then((response) => {
-      const leaders = response.data.leaders;
-      const expenseList = document.querySelector('#leaderList');
-      expenseList.innerHTML = '';
-
-      if (leaders.length === 0) {
-        const message = document.createElement('p');
-        message.textContent =
-          'No premium members are currently listed in the leaderboard.';
-        expenseList.appendChild(message);
-        return;
-      }
-
-      leaders.forEach(function (leader) {
-        const li = document.createElement('li');
-        li.textContent = `${leader.username} >> ${leader.totalExpense}`;
-        expenseList.appendChild(li);
-      });
+    .get('/expense/leaderboard', {
+      headers: { Authorization: token },
     })
-    .catch(function (error) {
-      console.error('Error fetching leaderboard:', error);
+    .then((response) => {
+      const leaderList = document.querySelector('#leaderList');
+      leaderList.innerHTML = '';
+
+      response.data.forEach((user) => {
+        const li = document.createElement('li');
+        li.textContent = `${user.name} - Total Expense: ${user.totalExpense}`;
+        leaderList.appendChild(li);
+      });
+
+      leaderboard.style.display = 'block';
+    })
+    .catch((error) => {
+      console.error(error);
+    });
+}
+
+// Add other existing functions back
+function addExpense(amount, description, category) {
+  const token = localStorage.getItem('token');
+
+  axios
+    .post(
+      '/expense/add-expense',
+      {
+        amount,
+        description,
+        category,
+      },
+      {
+        headers: { Authorization: token },
+      }
+    )
+    .then(() => {
+      fetchExpenses(currentPage);
+    })
+    .catch((error) => {
+      console.error(error);
+    });
+}
+
+function deleteExpense(id, listItem) {
+  const token = localStorage.getItem('token');
+
+  axios
+    .delete(`/expense/expenses/${id}`, {
+      headers: { Authorization: token },
+    })
+    .then(() => {
+      listItem.remove();
+    })
+    .catch((error) => {
+      console.error(error);
     });
 }
 
 function fetchExpenses(page = 1) {
   const token = localStorage.getItem('token');
+  const itemsPerPage = document.getElementById('itemsPerPage').value;
 
   axios
-    .get(`/expense/expenses?page=${page}&limit=${itemsPerPage}`, {
+    .get(`/expense/expenses?page=${page}&items=${itemsPerPage}`, {
       headers: { Authorization: token },
     })
     .then((response) => {
-      const { expenses, pagination } = response.data;
       const expenseList = document.querySelector('#expenseList');
-
       expenseList.innerHTML = '';
 
-      expenses.forEach((expense) => {
+      response.data.expenses.forEach((expense) => {
         const li = document.createElement('li');
         li.textContent = `Amount: ${expense.amount}, Description: ${expense.description}, Category: ${expense.category}`;
 
-        const deleteButton = document.createElement('button');
-        deleteButton.textContent = 'Delete';
-        deleteButton.addEventListener('click', () => {
-          deleteExpense(expense.id, li);
-        });
+        const deleteBtn = document.createElement('button');
+        deleteBtn.textContent = 'Delete';
+        deleteBtn.onclick = () => deleteExpense(expense.id, li);
 
-        li.appendChild(deleteButton);
+        li.appendChild(deleteBtn);
         expenseList.appendChild(li);
       });
 
-      updatePaginationButtons(pagination);
+      updatePaginationButtons(response.data.pagination);
     })
     .catch((error) => {
-      console.error('Error fetching expenses:', error);
+      console.error(error);
     });
 }
 
 function updatePaginationButtons(pagination) {
-  const paginationButtons = document.querySelector('#paginationButtons');
-  if (!paginationButtons) {
-    console.error('#paginationButtons element not found');
-    return;
-  }
+  const paginationDiv = document.querySelector('#paginationButtons');
+  paginationDiv.innerHTML = '';
 
-  paginationButtons.innerHTML = '';
-
-  const { hasNextPage, hasPrevPage } = pagination;
-
-  if (hasPrevPage) {
+  if (pagination.hasPreviousPage) {
     const prevButton = document.createElement('button');
-    prevButton.id = 'change';
     prevButton.textContent = 'Previous';
-    prevButton.addEventListener('click', () => {
+    prevButton.onclick = () => {
       currentPage--;
       fetchExpenses(currentPage);
-    });
-    paginationButtons.appendChild(prevButton);
+    };
+    paginationDiv.appendChild(prevButton);
   }
 
-  const pageIndicator = document.createElement('span');
-  pageIndicator.textContent = `Page ${currentPage}`;
-  paginationButtons.appendChild(pageIndicator);
-
-  if (hasNextPage) {
+  if (pagination.hasNextPage) {
     const nextButton = document.createElement('button');
-    nextButton.id = 'change';
     nextButton.textContent = 'Next';
-    nextButton.addEventListener('click', () => {
+    nextButton.onclick = () => {
       currentPage++;
       fetchExpenses(currentPage);
-    });
-    paginationButtons.appendChild(nextButton);
+    };
+    paginationDiv.appendChild(nextButton);
   }
 }
+
+// Event Listeners
+document.getElementById('expenseForm').addEventListener('submit', (e) => {
+  e.preventDefault();
+  const amount = document.getElementById('amount').value;
+  const description = document.getElementById('description').value;
+  const category = document.getElementById('category').value;
+
+  addExpense(amount, description, category);
+  e.target.reset();
+});
+
+document.getElementById('premiumForm').addEventListener('submit', (e) => {
+  e.preventDefault();
+  buyPremium();
+});
+
+document.getElementById('itemsPerPage').addEventListener('change', () => {
+  currentPage = 1;
+  fetchExpenses(currentPage);
+});
+
+// Initial load
+fetchExpenses();

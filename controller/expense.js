@@ -2,6 +2,8 @@ const path = require('path');
 const ExpenseService = require('../services/ExpenseServices');
 const { validationResult } = require('express-validator');
 
+const razorpay_key = process.env.RAZORPAY_KEY_ID;
+
 exports.getDownloads = async (req, res) => {
   try {
     const userId = req.user.id;
@@ -111,7 +113,7 @@ exports.deleteExpense = async (req, res) => {
 exports.createOrder = async (req, res) => {
   try {
     const order = await ExpenseService.createOrder();
-    res.status(200).json({ order });
+    res.status(200).json({ order, razorpay_key });
   } catch (error) {
     console.error('Error creating Razorpay order:', error);
     res.status(500).json({ error: 'Failed to create premium order' });

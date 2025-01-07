@@ -32,20 +32,32 @@ app.use(
     contentSecurityPolicy: {
       directives: {
         defaultSrc: ["'self'"],
-        scriptSrc: ["'self'", "'unsafe-inline'", "'unsafe-eval'"],
+        scriptSrc: [
+          "'self'",
+          "'unsafe-inline'",
+          "'unsafe-eval'",
+          'https://checkout.razorpay.com', // Allow Razorpay checkout script
+          'https://cdn.jsdelivr.net', // If you're using CDNs like for axios
+        ],
         styleSrc: ["'self'", "'unsafe-inline'"],
         imgSrc: ["'self'", 'data:', 'https:'],
-        connectSrc: ["'self'"],
+        connectSrc: [
+          "'self'",
+          'https://api.razorpay.com', // Allow Razorpay API
+          'https://lumberjack.razorpay.com', // Allow Lumberjack for logging and monitoring
+          'https://lumberjack-cx.razorpay.com', // Allow Lumberjack-CX for the connection you're blocking
+        ],
         fontSrc: ["'self'", 'https:', 'data:'],
         objectSrc: ["'none'"],
         mediaSrc: ["'self'"],
-        frameSrc: ["'self'"],
+        frameSrc: ["'self'", 'https://api.razorpay.com'], // Allow Razorpay frames
       },
     },
     crossOriginEmbedderPolicy: false,
     crossOriginResourcePolicy: { policy: 'cross-origin' },
   })
 );
+
 app.use(morgan('combined', { stream: accessLogStream }));
 
 app.use(cors());
