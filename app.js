@@ -40,22 +40,28 @@ app.use(
           "'self'",
           "'unsafe-inline'",
           "'unsafe-eval'",
-          'https://checkout.razorpay.com', // Allow Razorpay checkout script
-          'https://cdn.jsdelivr.net', // If you're using CDNs like for axios
+          'https://checkout.razorpay.com',
+          'https://cdn.jsdelivr.net',
         ],
-        styleSrc: ["'self'", 'unsafe-inline', 'http:'],
-        imgSrc: ["'self'", 'data:', 'http:'],
-        formAction: ["'self'", 'http://43.204.103.32:3000'],
+        styleSrc: ["'self'", "'unsafe-inline'", 'https:', 'http:'],
+        imgSrc: ["'self'", 'data:', 'https:', 'http:'],
+        formAction: [
+          "'self'",
+          'http://43.204.103.32:3000',
+          'https://43.204.103.32:3000', // Add HTTPS
+        ],
         connectSrc: [
           "'self'",
-          'https://api.razorpay.com', // Allow Razorpay API
-          'https://lumberjack.razorpay.com', // Allow Lumberjack for logging and monitoring
-          'https://lumberjack-cx.razorpay.com', // Allow Lumberjack-CX for the connection you're blocking
+          'https://api.razorpay.com',
+          'https://lumberjack.razorpay.com',
+          'https://lumberjack-cx.razorpay.com',
+          'http://43.204.103.32:3000',
+          'https://43.204.103.32:3000', // Add your domain with HTTPS
         ],
         fontSrc: ["'self'", 'https:', 'data:'],
         objectSrc: ["'none'"],
         mediaSrc: ["'self'"],
-        frameSrc: ["'self'", 'https://api.razorpay.com'], // Allow Razorpay frames
+        frameSrc: ["'self'", 'https://api.razorpay.com'],
       },
     },
     crossOriginEmbedderPolicy: false,
@@ -67,9 +73,15 @@ app.use(morgan('combined', { stream: accessLogStream }));
 
 app.use(
   cors({
-    origin: process.env.FRONTEND_URL || '*',
+    origin: [
+      process.env.FRONTEND_URL,
+      'http://43.204.103.32:3000',
+      'https://43.204.103.32:3000',
+      // Add any other allowed origins
+    ],
     methods: ['GET', 'POST', 'PUT', 'DELETE'],
     allowedHeaders: ['Content-Type', 'Authorization'],
+    credentials: true,
   })
 );
 
