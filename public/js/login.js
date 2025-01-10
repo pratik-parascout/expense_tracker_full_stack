@@ -5,7 +5,7 @@ document.querySelector('#loginForm').addEventListener('submit', async (e) => {
   const password = document.querySelector('#password').value;
 
   try {
-    const response = await axios.post('http://localhost:3000/login', {
+    const response = await axios.post('http://43.204.103.32:3000/login', {
       email,
       password,
     });
@@ -14,7 +14,7 @@ document.querySelector('#loginForm').addEventListener('submit', async (e) => {
       // alert(response.data.msg);
       document.querySelector('#loginForm').reset();
       localStorage.setItem('token', response.data.token);
-      window.location.href = '/expense';
+      window.location.href = 'http://43.204.103.32:3000/expense';
     }
   } catch (err) {
     if (err.response) {

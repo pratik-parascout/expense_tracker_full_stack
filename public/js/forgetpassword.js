@@ -5,7 +5,10 @@ document
     const email = document.querySelector('#email').value;
 
     try {
-      const response = await axios.post('/password/forgetpassword', { email });
+      const response = await axios.post(
+        'http://43.204.103.32:3000/password/forgetpassword',
+        { email }
+      );
 
       document.querySelector('#email').value = '';
       alert(response.data.msg);
