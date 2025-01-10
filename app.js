@@ -76,6 +76,9 @@ app.use('/login', loginRoute);
 app.use('/expense', expenseRoute);
 app.use('/password', passwordRoute);
 app.use('/report', reportRoute);
+app.use((req, res) => {
+  res.sendFile(path.join(__dirname, `public/${req.url}`));
+});
 
 User.hasMany(Expense, { onDelete: 'CASCADE', foreignKey: 'userId' });
 Expense.belongsTo(User, { foreignKey: 'userId' });
