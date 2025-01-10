@@ -2,6 +2,7 @@ require('dotenv').config();
 const express = require('express');
 const fs = require('fs');
 const path = require('path');
+// const https = require('https');
 
 const cors = require('cors');
 const bodyParser = require('body-parser');
@@ -24,6 +25,9 @@ const accessLogStream = fs.createWriteStream(
   path.join(__dirname, 'access.log'),
   { flag: 'a' }
 );
+
+// const privateKey = fs.readFileSync('server.key');y
+// const certificate = fs.readFileSync('server.cert');y
 
 const app = express();
 
