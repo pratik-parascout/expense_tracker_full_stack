@@ -43,9 +43,9 @@ app.use(
           'https://checkout.razorpay.com', // Allow Razorpay checkout script
           'https://cdn.jsdelivr.net', // If you're using CDNs like for axios
         ],
-        styleSrc: ["'self'", "'unsafe-inline'"],
-        imgSrc: ["'self'", 'data:', 'https:'],
-        formAction: ["'self'", 'https://43.204.103.32:3000'],
+        styleSrc: ["'self'", 'unsafe-inline', 'http:'],
+        imgSrc: ["'self'", 'data:', 'http:'],
+        formAction: ["'self'", 'http://43.204.103.32:3000'],
         connectSrc: [
           "'self'",
           'https://api.razorpay.com', // Allow Razorpay API
@@ -65,11 +65,19 @@ app.use(
 
 app.use(morgan('combined', { stream: accessLogStream }));
 
-app.use(cors());
+app.use(
+  cors({
+    origin: process.env.FRONTEND_URL || '*',
+    methods: ['GET', 'POST', 'PUT', 'DELETE'],
+    allowedHeaders: ['Content-Type', 'Authorization'],
+  })
+);
+
 app.use(bodyParser.json());
 app.use(bodyParser.urlencoded({ extended: false }));
 
 app.use(express.static(path.join(__dirname, 'public')));
+app.use(express.static('public'));
 
 app.use('/signup', signupRoute);
 app.use('/login', loginRoute);
