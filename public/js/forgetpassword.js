@@ -6,7 +6,7 @@ document
 
     try {
       const response = await axios.post(
-        'http://43.204.103.32:3000/password/forgetpassword',
+        'http://13.126.130.202:3000/password/forgetpassword',
         { email }
       );
 

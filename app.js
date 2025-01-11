@@ -47,16 +47,16 @@ app.use(
         imgSrc: ["'self'", 'data:', 'https:', 'http:'],
         formAction: [
           "'self'",
-          'http://43.204.103.32:3000',
-          'https://43.204.103.32:3000', // Add HTTPS
+          'http://13.126.130.202:3000',
+          'https://13.126.130.202:3000', // Add HTTPS
         ],
         connectSrc: [
           "'self'",
           'https://api.razorpay.com',
           'https://lumberjack.razorpay.com',
           'https://lumberjack-cx.razorpay.com',
-          'http://43.204.103.32:3000',
-          'https://43.204.103.32:3000', // Add your domain with HTTPS
+          'http://13.126.130.202:3000',
+          'https://13.126.130.202:3000', // Add your domain with HTTPS
         ],
         fontSrc: ["'self'", 'https:', 'data:'],
         objectSrc: ["'none'"],
@@ -75,8 +75,8 @@ app.use(
   cors({
     origin: [
       process.env.FRONTEND_URL,
-      'http://43.204.103.32:3000',
-      'https://43.204.103.32:3000',
+      'http://13.126.130.202:3000',
+      'https://13.126.130.202:3000',
       // Add any other allowed origins
     ],
     methods: ['GET', 'POST', 'PUT', 'DELETE'],
