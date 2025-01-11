@@ -12,7 +12,7 @@ exports.sendResetEmail = async (email, id) => {
     const transactionalEmailApi = new SibApiV3Sdk.TransactionalEmailsApi();
 
     // Create the reset URL dynamically using the id
-    const resetUrl = `http://13.126.130.202:3000/password/resetpassword/${id}`;
+    const resetUrl = `http://13.203.1.119:3000/password/resetpassword/${id}`;
 
     const emailData = {
       sender: { email: 'notparascout@gmail.com', name: 'trackall' },

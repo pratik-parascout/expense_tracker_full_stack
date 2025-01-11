@@ -2,7 +2,6 @@ require('dotenv').config();
 const express = require('express');
 const fs = require('fs');
 const path = require('path');
-// const https = require('https');
 
 const cors = require('cors');
 const bodyParser = require('body-parser');
@@ -26,9 +25,6 @@ const accessLogStream = fs.createWriteStream(
   { flag: 'a' }
 );
 
-// const privateKey = fs.readFileSync('server.key');y
-// const certificate = fs.readFileSync('server.cert');y
-
 const app = express();
 
 app.use(
@@ -43,20 +39,14 @@ app.use(
           'https://checkout.razorpay.com',
           'https://cdn.jsdelivr.net',
         ],
-        styleSrc: ["'self'", "'unsafe-inline'", 'https:', 'http:'],
+        styleSrc: ["'self'", "'unsafe-inline'"],
         imgSrc: ["'self'", 'data:', 'https:', 'http:'],
-        formAction: [
-          "'self'",
-          'http://13.126.130.202:3000',
-          'https://43.204.103.32:3000', // Add HTTPS
-        ],
+        formAction: ["'self'", 'http://13.203.1.119:3000'],
         connectSrc: [
           "'self'",
           'https://api.razorpay.com',
           'https://lumberjack.razorpay.com',
           'https://lumberjack-cx.razorpay.com',
-          'http://13.126.130.202:3000',
-          'https://43.204.103.32:3000', // Add your domain with HTTPS
         ],
         fontSrc: ["'self'", 'https:', 'data:'],
         objectSrc: ["'none'"],
@@ -66,36 +56,25 @@ app.use(
     },
     crossOriginEmbedderPolicy: false,
     crossOriginResourcePolicy: { policy: 'cross-origin' },
+    hsts: false, // Disable HSTS here
+    contentSecurityPolicy: false, // if you want to disable CSP entirely
   })
 );
 
 app.use(morgan('combined', { stream: accessLogStream }));
-
-app.use(
-  cors({
-    origin: [
-      process.env.FRONTEND_URL,
-      'http://13.126.130.202:3000',
-      'https://43.204.103.32:3000',
-      // Add any other allowed origins
-    ],
-    methods: ['GET', 'POST', 'PUT', 'DELETE'],
-    allowedHeaders: ['Content-Type', 'Authorization'],
-    credentials: true,
-  })
-);
-
+app.use(cors());
 app.use(bodyParser.json());
 app.use(bodyParser.urlencoded({ extended: false }));
-
-app.use(express.static(path.join(__dirname, 'public')));
-app.use(express.static('public'));
+app.use(express.static(path.join(__dirname, 'public/html')));
+app.use('/css', express.static(path.join(__dirname, 'public/css')));
+app.use('/js', express.static(path.join(__dirname, 'public/js')));
 
 app.use('/signup', signupRoute);
 app.use('/login', loginRoute);
 app.use('/expense', expenseRoute);
 app.use('/password', passwordRoute);
 app.use('/report', reportRoute);
+
 app.use((req, res) => {
   res.sendFile(path.join(__dirname, `public/${req.url}`));
 });
@@ -103,17 +82,17 @@ app.use((req, res) => {
 User.hasMany(Expense, { onDelete: 'CASCADE', foreignKey: 'userId' });
 Expense.belongsTo(User, { foreignKey: 'userId' });
 User.hasMany(ForgotPasswordRequest);
-ForgotPasswordRequest.belongsTo(User, {
-  onDelete: 'CASCADE',
-});
+ForgotPasswordRequest.belongsTo(User, { onDelete: 'CASCADE' });
 User.hasMany(DownloadList, { foreignKey: 'userId', onDelete: 'CASCADE' });
 DownloadList.belongsTo(User, { foreignKey: 'userId' });
 
 sequelize
   .sync()
-  .then((result) => {
-    app.listen(process.env.PORT || 3000);
+  .then(() => {
+    app.listen(process.env.PORT || 3000, '0.0.0.0', () => {
+      console.log('Server is running on port 3000');
+    });
   })
   .catch((err) => {
-    console.log(err);
+    console.error('Error starting server:', err);
   });
