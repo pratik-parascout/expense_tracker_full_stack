@@ -40,12 +40,13 @@ app.use(
           'https://cdn.jsdelivr.net',
         ],
         styleSrc: ["'self'", "'unsafe-inline'"],
-        imgSrc: ["'self'", 'data:', 'http:'],
+        imgSrc: ["'self'", 'data:', 'https:', 'http:'],
         formAction: ["'self'", 'http://13.126.130.202:3000'],
         connectSrc: [
           "'self'",
           'https://api.razorpay.com',
           'https://lumberjack.razorpay.com',
+          'https://lumberjack-cx.razorpay.com',
         ],
         fontSrc: ["'self'", 'https:', 'data:'],
         objectSrc: ["'none'"],
@@ -55,6 +56,8 @@ app.use(
     },
     crossOriginEmbedderPolicy: false,
     crossOriginResourcePolicy: { policy: 'cross-origin' },
+    hsts: false, // Disable HSTS here
+    contentSecurityPolicy: false, // if you want to disable CSP entirely
   })
 );
 
