@@ -24,7 +24,7 @@ const createPasswordResetRequest = async (email) => {
       { transaction: t }
     );
 
-    const resetLink = `http://13.126.130.202:3000/password/resetpassword/${resetId}`;
+    const resetLink = `http://13.203.1.119:3000/password/resetpassword/${resetId}`;
     await sendResetEmail.sendResetEmail(email, resetId);
 
     await t.commit();

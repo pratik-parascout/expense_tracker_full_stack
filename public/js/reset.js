@@ -12,14 +12,14 @@ document.querySelector('form').addEventListener('submit', async (e) => {
 
   try {
     const response = await axios.post(
-      `http://13.126.130.202:3000/password/resetpassword/${id}`,
+      `http://13.203.1.119:3000/password/resetpassword/${id}`,
       {
         password,
       }
     );
 
     alert(response.data.msg);
-    window.location.href = 'http://13.126.130.202:3000/login';
+    window.location.href = 'http://13.203.1.119:3000/login';
   } catch (error) {
     console.error('Error resetting password:', error);
     alert(error.response?.data?.msg || 'Failed to reset password.');

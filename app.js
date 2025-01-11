@@ -41,7 +41,7 @@ app.use(
         ],
         styleSrc: ["'self'", "'unsafe-inline'"],
         imgSrc: ["'self'", 'data:', 'https:', 'http:'],
-        formAction: ["'self'", 'http://13.126.130.202:3000'],
+        formAction: ["'self'", 'http://13.203.1.119:3000'],
         connectSrc: [
           "'self'",
           'https://api.razorpay.com',
