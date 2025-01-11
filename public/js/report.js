@@ -4,7 +4,7 @@ const token = localStorage.getItem('token');
 document.querySelector('#download').addEventListener('click', async () => {
   try {
     const response = await axios.get(
-      'http://43.204.103.32:3000/expense/download',
+      'http://13.126.130.202:3000/expense/download',
       {
         headers: { Authorization: token },
       }
@@ -27,7 +27,7 @@ document.querySelector('#download').addEventListener('click', async () => {
 async function fetchDownloadedFiles() {
   try {
     const response = await axios.get(
-      'http://43.204.103.32:3000/expense/downloads',
+      'http://13.126.130.202:3000/expense/downloads',
       {
         headers: { Authorization: token },
       }

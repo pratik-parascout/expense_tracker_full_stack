@@ -37,7 +37,7 @@ document.addEventListener('DOMContentLoaded', function () {
   const token = localStorage.getItem('token');
 
   axios
-    .get('http://43.204.103.32:3000/expense/isPremium', {
+    .get('http://13.126.130.202:3000/expense/isPremium', {
       headers: { Authorization: token },
     })
     .then((response) => {
@@ -78,7 +78,7 @@ function addExpense(amount, description, category) {
   const token = localStorage.getItem('token');
 
   axios
-    .post('http://43.204.103.32:3000/expense/add-expense', expenseData, {
+    .post('http://13.126.130.202:3000/expense/add-expense', expenseData, {
       headers: { Authorization: token },
     })
     .then((response) => {
@@ -93,7 +93,7 @@ function addExpense(amount, description, category) {
 function deleteExpense(id, listItem) {
   const token = localStorage.getItem('token');
   axios
-    .delete(`http://43.204.103.32:3000/expense/expenses/${id}`, {
+    .delete(`http://13.126.130.202:3000/expense/expenses/${id}`, {
       headers: { Authorization: token },
     })
     .then((response) => {
@@ -109,7 +109,7 @@ function buyPremium() {
 
   axios
     .post(
-      'http://43.204.103.32:3000/expense/create-premium-order',
+      'http://13.126.130.202:3000/expense/create-premium-order',
       {},
       {
         headers: { Authorization: token },
@@ -128,7 +128,7 @@ function buyPremium() {
         handler: function (response) {
           axios
             .post(
-              'http://43.204.103.32:3000/expense/payment-success',
+              'http://13.126.130.202:3000/expense/payment-success',
               {
                 razorpay_payment_id: response.razorpay_payment_id,
                 razorpay_order_id: response.razorpay_order_id,
@@ -177,7 +177,7 @@ function buyPremium() {
 function showLeaderboard() {
   const token = localStorage.getItem('token');
   axios
-    .get('http://43.204.103.32:3000/expense/leaderboard', {
+    .get('http://13.126.130.202:3000/expense/leaderboard', {
       headers: { Authorization: token },
     })
     .then((response) => {
@@ -209,7 +209,7 @@ function fetchExpenses(page = 1) {
 
   axios
     .get(
-      `http://43.204.103.32:3000/expense/expenses?page=${page}&limit=${itemsPerPage}`,
+      `http://13.126.130.202:3000/expense/expenses?page=${page}&limit=${itemsPerPage}`,
       {
         headers: { Authorization: token },
       }
