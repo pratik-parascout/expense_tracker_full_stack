@@ -13,13 +13,13 @@ const form = document
     }
 
     try {
-      const response = await axios.post('http://43.204.103.32:3000/signup', {
+      const response = await axios.post('http://localhost:3000/signup', {
         username,
         email,
         password,
       });
       document.querySelector('#signupForm').reset();
-      window.location.href = 'http://43.204.103.32:3000/login';
+      window.location.href = 'http://localhost:3000/login';
     } catch (err) {
       console.log(err);
     }

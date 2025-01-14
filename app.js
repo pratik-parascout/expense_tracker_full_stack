@@ -45,7 +45,7 @@ app.use(
         ],
         styleSrc: ["'self'", "'unsafe-inline'"],
         imgSrc: ["'self'", 'data:', 'https:'],
-        formAction: ["'self'", 'https://43.204.103.32:3000'],
+        formAction: ["'self'", 'https://localhost:3000'],
         connectSrc: [
           "'self'",
           'https://api.razorpay.com', // Allow Razorpay API

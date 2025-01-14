@@ -3,12 +3,9 @@ const token = localStorage.getItem('token');
 // Download button functionality
 document.querySelector('#download').addEventListener('click', async () => {
   try {
-    const response = await axios.get(
-      'http://43.204.103.32:3000/expense/download',
-      {
-        headers: { Authorization: token },
-      }
-    );
+    const response = await axios.get('http://localhost:3000/expense/download', {
+      headers: { Authorization: token },
+    });
 
     const a = document.createElement('a');
     a.href = response.data.fileURL;
@@ -27,7 +24,7 @@ document.querySelector('#download').addEventListener('click', async () => {
 async function fetchDownloadedFiles() {
   try {
     const response = await axios.get(
-      'http://43.204.103.32:3000/expense/downloads',
+      'http://localhost:3000/expense/downloads',
       {
         headers: { Authorization: token },
       }
